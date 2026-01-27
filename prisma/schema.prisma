@@ -21,8 +21,8 @@ enum UserRole {
 model User {
 id        String       @id @default(uuid())
 clerkId  String  @unique
-  email     String       @unique
-  role      UserRole     @default(USER)
+email     String       @unique
+role      UserRole     @default(USER)
 
   firstName String?
   lastName  String?
