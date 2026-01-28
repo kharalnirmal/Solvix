@@ -2,6 +2,8 @@
 import { db } from "@/lib/db";
 //prisma client instance -> used to talk you database
 import { currentUser } from "@clerk/nextjs/server"; //to access sessions
+import { success } from "zod";
+
 //clerk helper-> gives he currently logged-in user
 
 // ===============================
@@ -15,7 +17,7 @@ export const onBoardUser = async () => {
     //if no user is logged in, stop here
     //currentUser() returns null if session doesn't exit
     if (!user) {
-      return { success: false, error: "No aut" };
+      return { success: false, error: "No authenticated user found" };
     }
 
     //destructuring useful fields from clerk's user object
@@ -79,6 +81,39 @@ export const onBoardUser = async () => {
     return {
       success: false,
       error: "Failed to onboard user",
+    };
+  }
+};
+
+export const currentUserRole = async () => {
+  try {
+    //get logged in user from clerk
+    const user = await currentUser();
+
+    if (!user) {
+      return { success: false, error: "No authenticated user found" };
+    }
+
+    const userRole = await db.user.findUnique({
+      where: {
+        clerkId: user.id,
+      },
+      select: {
+        role: true, //only fetch role field (optimization)
+      },
+    });
+
+    if (!userRole) {
+      return { success: false, error: "User not found in database" };
+    }
+
+    return userRole.role;
+  } catch (error) {
+    console.error("❌ Error fetching user role:", error);
+
+    return {
+      success: false,
+      error: "Failed to fetch user role",
     };
   }
 };
